@@ -94,13 +94,12 @@ def changed_files(base="develop", untracked=True, all_files=False, root=None):
     git = which("git", required=True)
 
     # ensure base is in the repo
-    git("show-ref", "--verify", "--quiet", "refs/heads/%s" % base,
-        fail_on_error=False)
+    git("show-ref", "--verify", "--quiet", "refs/heads/%s" % base, fail_on_error=False)
     if git.returncode != 0:
         tty.die(
             "This repository does not have a '%s' branch." % base,
             "spack style needs this branch to determine which files changed.",
-            "Ensure that '%s' exists, or specify files to check explicitly." % base
+            "Ensure that '%s' exists, or specify files to check explicitly." % base,
         )
 
     range = "{0}...".format(base)
@@ -122,10 +121,7 @@ def changed_files(base="develop", untracked=True, all_files=False, root=None):
     if all_files:
         git_args.append(["ls-files", "--exclude-standard"])
 
-    excludes = [
-        os.path.realpath(os.path.join(root, f))
-        for f in exclude_directories
-    ]
+    excludes = [os.path.realpath(os.path.join(root, f)) for f in exclude_directories]
     changed = set()
 
     for arg_list in git_args:
@@ -200,10 +196,10 @@ def setup_parser(subparser):
         help="do not run mypy (default: run mypy if available)",
     )
     subparser.add_argument(
-        "--black",
+        "--no-black",
         dest="black",
-        action="store_true",
-        help="run black if available (default: skip black)",
+        action="store_false",
+        help="run black if available (default: run black if available)",
     )
     subparser.add_argument(
         "--root",
@@ -211,9 +207,7 @@ def setup_parser(subparser):
         default=None,
         help="style check a different spack instance",
     )
-    subparser.add_argument(
-        "files", nargs=argparse.REMAINDER, help="specific files to check"
-    )
+    subparser.add_argument("files", nargs=argparse.REMAINDER, help="specific files to check")
 
 
 def cwd_relative(path, args):
@@ -227,9 +221,7 @@ def rewrite_and_print_output(
     """rewrite ouput with <file>:<line>: format to respect path args"""
     # print results relative to current working directory
     def translate(match):
-        return replacement.format(
-            cwd_relative(match.group(1), args), *list(match.groups()[1:])
-        )
+        return replacement.format(cwd_relative(match.group(1), args), *list(match.groups()[1:]))
 
     for line in output.split("\n"):
         if not line:
@@ -291,9 +283,12 @@ def run_flake8(flake8_cmd, file_list, args):
 def run_mypy(mypy_cmd, file_list, args):
     # always run with config from running spack prefix
     mypy_args = [
-        "--config-file", os.path.join(spack.paths.prefix, "pyproject.toml"),
-        "--package", "spack",
-        "--package", "llnl",
+        "--config-file",
+        os.path.join(spack.paths.prefix, "pyproject.toml"),
+        "--package",
+        "spack",
+        "--package",
+        "llnl",
         "--show-error-codes",
     ]
     # not yet, need other updates to enable this
@@ -374,10 +369,7 @@ def style(parser, args):
     args.root = os.path.realpath(args.root) if args.root else spack.paths.prefix
     spack_script = os.path.join(args.root, "bin", "spack")
     if not os.path.exists(spack_script):
-        tty.die(
-            "This does not look like a valid spack root.",
-            "No such file: '%s'" % spack_script
-        )
+        tty.die("This does not look like a valid spack root.", "No such file: '%s'" % spack_script)
 
     file_list = args.files
     if file_list:
