@@ -25,7 +25,9 @@ class Camellia(CMakePackage):
     )
 
     depends_on(
-        "trilinos+amesos+amesos2+belos+epetra+epetraext+exodus+ifpack+ifpack2+intrepid+intrepid2+kokkos+ml+muelu+sacado+shards+tpetra+zoltan+mumps+superlu-dist+hdf5+mpi@master,12.12.1:"
+        "trilinos+amesos+amesos2+belos+epetra+epetraext+exodus+ifpack"
+        "+ifpack2+intrepid+intrepid2+kokkos+ml+muelu+sacado+shards+tpetra"
+        "+zoltan+mumps+superlu-dist+hdf5+mpi@master,12.12.1:"
     )
     depends_on("moab@:4", when="+moab")
 

@@ -306,7 +306,7 @@ _versions = {
     "6.0.37": {
         "Linux-x86_64": (
             "991e436c7a6c94ec67cf44204d136adfef87baa3ded270544fa211179779bc40",
-            "//developer.download.nvidia.com/compute/cuda/6_0/rel/installers/cuda_6.0.37_linux_64.run",
+            "https://developer.download.nvidia.com/compute/cuda/6_0/rel/installers/cuda_6.0.37_linux_64.run",
         )
     },
 }

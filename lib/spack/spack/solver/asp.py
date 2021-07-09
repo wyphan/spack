@@ -25,7 +25,7 @@ try:
     # There may be a better way to detect this
     clingo_cffi = hasattr(clingo.Symbol, "_rep")
 except ImportError:
-    clingo = None
+    clingo = None  # type: ignore
     clingo_cffi = False
 
 import llnl.util.lang
