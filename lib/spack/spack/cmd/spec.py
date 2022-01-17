@@ -28,7 +28,7 @@ for further documentation regarding the spec syntax, see:
     spack help --spec
 """
     arguments.add_common_arguments(
-        subparser, ['long', 'very_long', 'install_status', 'reuse']
+        subparser, ['long', 'very_long', 'install_status']
     )
     subparser.add_argument(
         '-y', '--yaml', action='store_const', dest='format', default=None,
@@ -51,6 +51,8 @@ for further documentation regarding the spec syntax, see:
         '-t', '--types', action='store_true', default=False,
         help='show dependency types')
     arguments.add_common_arguments(subparser, ['specs'])
+
+    spack.cmd.common.arguments.add_concretizer_args(subparser)
 
 
 @contextlib.contextmanager
@@ -82,15 +84,11 @@ def spec(parser, args):
     if not args.specs:
         tty.die("spack spec requires at least one spec")
 
-    concretize_kwargs = {
-        'reuse': args.reuse
-    }
-
     for spec in spack.cmd.parse_specs(args.specs):
         # With -y, just print YAML to output.
         if args.format:
             if spec.name in spack.repo.path or spec.virtual:
-                spec.concretize(**concretize_kwargs)
+                spec.concretize()
 
             # The user can specify the hash type to use
             hash_type = getattr(ht, args.hash_type)
@@ -111,5 +109,5 @@ def spec(parser, args):
             tree_kwargs['hashes'] = args.long or args.very_long
             print("Concretized")
             print("--------------------------------")
-            spec.concretize(**concretize_kwargs)
+            spec.concretize()
             print(spec.tree(**tree_kwargs))
