@@ -90,7 +90,7 @@ spack:
 valid_environment_name_re = r'^\w[\w-]*$'
 
 #: version of the lockfile format. Must increase monotonically.
-lockfile_format_version = 3
+lockfile_format_version = 4
 
 # Magic names
 # The name of the standalone spec list in the manifest yaml
@@ -410,7 +410,7 @@ class ViewDescriptor(object):
     def content_hash(self, specs):
         d = syaml.syaml_dict([
             ('descriptor', self.to_dict()),
-            ('specs', [(spec.full_hash(), spec.prefix) for spec in sorted(specs)])
+            ('specs', [(spec.dag_hash(), spec.prefix) for spec in sorted(specs)])
         ])
         contents = sjson.dump(d)
         return spack.util.hash.b32_hash(contents)
@@ -480,10 +480,19 @@ class ViewDescriptor(object):
             # recognize environment specs (which do store build deps),
             # then they need to be stripped.
             if spec.concrete:  # Do not link unconcretized roots
-                # We preserve _hash _normal to avoid recomputing DAG
-                # hashes (DAG hashes don't consider build deps)
+                # We preserve whatever the runtime hash is and _normal
+                # to avoid recomputing runtime hashes (which don't
+                # consider build deps)
                 spec_copy = spec.copy(deps=('link', 'run'))
+                # FIXME: Now the _hash (dag_hash) *does* include build deps, but
+                # if we don't copy it here, then the database will think it's not
+                # installed.
                 spec_copy._hash = spec._hash
+
+                spec_hash_val = getattr(spec, ht.runtime_hash.attr,
+                                        getattr(spec, ht.dag_hash.attr, None))
+                setattr(spec_copy, ht.runtime_hash.attr, spec_hash_val)
+
                 spec_copy._normal = spec._normal
                 specs_for_view.append(spec_copy)
         return specs_for_view
@@ -966,14 +975,9 @@ class Environment(object):
 
         if not matches:
             # concrete specs match against concrete specs in the env
-            # by *dag hash*, not build hash.
-            dag_hashes_in_order = [
-                self.specs_by_hash[build_hash].dag_hash()
-                for build_hash in self.concretized_order
-            ]
-
+            # by dag hash.
             specs_hashes = zip(
-                self.concretized_user_specs, dag_hashes_in_order
+                self.concretized_user_specs, self.concretized_order
             )
 
             matches = [
@@ -1265,7 +1269,7 @@ class Environment(object):
             spec = next(
                 s for s in self.user_specs if s.satisfies(user_spec)
             )
-            concrete = self.specs_by_hash.get(spec.build_hash())
+            concrete = self.specs_by_hash.get(spec.dag_hash())
             if not concrete:
                 concrete = spec.concretized(tests=tests)
                 self._add_concrete_spec(spec, concrete)
@@ -1431,7 +1435,7 @@ class Environment(object):
         # update internal lists of specs
         self.concretized_user_specs.append(spec)
 
-        h = concrete.build_hash()
+        h = concrete.dag_hash()
         self.concretized_order.append(h)
         self.specs_by_hash[h] = concrete
 
@@ -1553,9 +1557,7 @@ class Environment(object):
         return sorted(all_specs)
 
     def all_hashes(self):
-        """Return hashes of all specs.
-
-        Note these hashes exclude build dependencies."""
+        """Return hashes of all specs."""
         return list(set(s.dag_hash() for s in self.all_specs()))
 
     def roots(self):
@@ -1618,11 +1620,10 @@ class Environment(object):
         for user_spec, concretized_user_spec in self.concretized_specs():
             # Deal with concrete specs differently
             if spec.concrete:
-                # Matching a concrete spec is more restrictive
-                # than just matching the dag hash
+                # TODO: do we still need the extra check comparing dag hashes?
                 is_match = (
                     spec in concretized_user_spec and
-                    concretized_user_spec[spec.name].build_hash() == spec.build_hash()
+                    concretized_user_spec[spec.name].dag_hash() == spec.dag_hash()
                 )
                 if is_match:
                     matches[spec] = spec
@@ -1704,12 +1705,12 @@ class Environment(object):
         concrete_specs = {}
         for spec in self.specs_by_hash.values():
             for s in spec.traverse():
-                build_hash = s.build_hash()
-                if build_hash not in concrete_specs:
-                    spec_dict = s.to_node_dict(hash=ht.build_hash)
+                dag_hash = s.dag_hash()
+                if dag_hash not in concrete_specs:
+                    spec_dict = s.node_dict_with_hashes(hash=ht.dag_hash)
                     # Assumes no legacy formats, since this was just created.
                     spec_dict[ht.dag_hash.name] = s.dag_hash()
-                    concrete_specs[build_hash] = spec_dict
+                    concrete_specs[dag_hash] = spec_dict
 
         hash_spec_list = zip(
             self.concretized_order, self.concretized_user_specs)
@@ -1743,47 +1744,34 @@ class Environment(object):
 
     def _read_lockfile_dict(self, d):
         """Read a lockfile dictionary into this environment."""
+        self.specs_by_hash = {}
+
         roots = d['roots']
         self.concretized_user_specs = [Spec(r['spec']) for r in roots]
         self.concretized_order = [r['hash'] for r in roots]
-
         json_specs_by_hash = d['concrete_specs']
-        root_hashes = set(self.concretized_order)
 
         specs_by_hash = {}
-        for build_hash, node_dict in json_specs_by_hash.items():
-            spec = Spec.from_node_dict(node_dict)
-            if d['_meta']['lockfile-version'] > 1:
-                # Build hash is stored as a key, but not as part of the node dict
-                # To ensure build hashes are not recomputed, we reattach here
-                setattr(spec, ht.build_hash.attr, build_hash)
-            specs_by_hash[build_hash] = spec
 
-        for build_hash, node_dict in json_specs_by_hash.items():
+        for lockfile_key, node_dict in json_specs_by_hash.items():
+            specs_by_hash[lockfile_key] = Spec.from_node_dict(node_dict)
+
+        for lockfile_key, node_dict in json_specs_by_hash.items():
             for _, dep_hash, deptypes, _ in (
                     Spec.dependencies_from_node_dict(node_dict)):
-                specs_by_hash[build_hash]._add_dependency(
+                specs_by_hash[lockfile_key]._add_dependency(
                     specs_by_hash[dep_hash], deptypes)
 
-        # If we are reading an older lockfile format (which uses dag hashes
-        # that exclude build deps), we use this to convert the old
-        # concretized_order to the full hashes (preserving the order)
-        old_hash_to_new = {}
-        self.specs_by_hash = {}
-        for _, spec in specs_by_hash.items():
-            dag_hash = spec.dag_hash()
-            build_hash = spec.build_hash()
-            if dag_hash in root_hashes:
-                old_hash_to_new[dag_hash] = build_hash
+        # Now make sure concretized_order and our internal specs dict
+        # contains the keys used by modern spack (i.e. the dag_hash
+        # that includes build deps and package hash).
+        self.concretized_order = [specs_by_hash[h_key].dag_hash()
+                                  for h_key in self.concretized_order]
 
-            if (dag_hash in root_hashes or build_hash in root_hashes):
-                self.specs_by_hash[build_hash] = spec
-
-        if old_hash_to_new:
-            # Replace any older hashes in concretized_order with hashes
-            # that include build deps
-            self.concretized_order = [
-                old_hash_to_new.get(h, h) for h in self.concretized_order]
+        for _, env_spec in specs_by_hash.items():
+            spec_dag_hash = env_spec.dag_hash()
+            if spec_dag_hash in self.concretized_order:
+                self.specs_by_hash[spec_dag_hash] = env_spec
 
     def write(self, regenerate=True):
         """Writes an in-memory environment to its location on disk.

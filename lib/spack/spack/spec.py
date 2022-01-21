@@ -181,7 +181,7 @@ default_format += '{%compiler.name}{@compiler.version}{compiler_flags}'
 default_format += '{variants}{arch=architecture}'
 
 #: specfile format version. Must increase monotonically
-specfile_format_version = 2
+specfile_format_version = 3
 
 
 def colorize_spec(spec):
@@ -1075,8 +1075,7 @@ class Spec(object):
         self.namespace = None
 
         self._hash = None
-        self._build_hash = None
-        self._full_hash = None
+        self._runtime_hash = None
         self._package_hash = None
         self._dunder_hash = None
         self._package = None
@@ -1093,12 +1092,12 @@ class Spec(object):
         self.external_path = external_path
         self.external_modules = Spec._format_module_list(external_modules)
 
-        # Older spack versions did not compute full_hash or build_hash,
-        # and we may not have the necessary information to recompute them
-        # if we read in old specs. Old concrete specs are marked "final"
-        # when read in to indicate that we shouldn't recompute full_hash
-        # or build_hash. New specs are not final; we can lazily compute
-        # their hashes.
+        # Older spack versions may have either computed different hashes or
+        # computed them differently, and we may not have the necessary
+        # information to recompute them if we read in old specs.
+        # Old concrete specs are marked "final" when read in to indicate
+        # that we shouldn't recompute the current dag_hash. New specs are
+        # not final; we can lazily compute their hashes.
         self._hashes_final = False
 
         # This attribute is used to store custom information for
@@ -1550,22 +1549,6 @@ class Spec(object):
         """
         return self._cached_hash(ht.dag_hash, length)
 
-    def full_hash(self, length=None):
-        """Hash that includes all build and run inputs for a spec.
-
-        Inputs are: the package hash (to identify the package.py),
-        build, link, and run dependencies.
-        """
-        return self._cached_hash(ht.full_hash, length)
-
-    def build_hash(self, length=None):
-        """Hash used to store specs in environments.
-
-        This hash includes build dependencies, and we need to preserve
-        them to be able to rebuild an entire environment for a user.
-        """
-        return self._cached_hash(ht.build_hash, length)
-
     def process_hash(self, length=None):
         """Hash used to transfer specs among processes.
 
@@ -1580,7 +1563,7 @@ class Spec(object):
         Originally, Spack ignored build dependencies to increase reuse when, e.g.,
         cmake versions changed.
         """
-        return self._cached_hash(ht.full_hash, length)
+        return self._cached_hash(ht.runtime_hash, length)
 
     def dag_hash_bit_prefix(self, bits):
         """Get the first <bits> bits of the DAG hash as an integer type."""
@@ -1751,7 +1734,7 @@ class Spec(object):
                     "dependencies": [
                     {
                         "name": "readline",
-                        "build_hash": "4f47cggum7p4qmp3xna4hi547o66unva",
+                        "hash": "4f47cggum7p4qmp3xna4hi547o66unva",
                         "type": [
                         "build",
                         "link"
@@ -1759,16 +1742,15 @@ class Spec(object):
                     },
                     {
                         "name": "zlib",
-                        "build_hash": "uvgh6p7rhll4kexqnr47bvqxb3t33jtq",
+                        "hash": "uvgh6p7rhll4kexqnr47bvqxb3t33jtq",
                         "type": [
                         "build",
                         "link"
                         ]
                     }
                     ],
-                    "hash": "d2yzqp2highd7sn4nr5ndkw3ydcrlhtk",
-                    "full_hash": "tve45xfqkfgmzwcyfetze2z6syrg7eaf",
-                    "build_hash": "tsjnz7lgob7bu2wd4sqzzjenxewc2zha"
+                    "runtime_hash": "d2yzqp2highd7sn4nr5ndkw3ydcrlhtk",
+                    "hash": "tve45xfqkfgmzwcyfetze2z6syrg7eaf",
                 },
                     # ... more node dicts for readline and its dependencies ...
                 ]
@@ -1820,38 +1802,32 @@ class Spec(object):
         node = self.to_node_dict(hash)
         node[ht.dag_hash.name] = self.dag_hash()
 
-        # full_hash and build_hash are lazily computed -- but if we write
-        # a spec out, we want them to be included. This is effectively
-        # the last chance we get to compute them accurately.
+        # dag_hash is lazily computed -- but if we write a spec out, we want it
+        # to be included. This is effectively the last chance we get to compute
+        # it accurately.
         if self.concrete:
-            # build and full hashes can be written out if:
-            # 1. they're precomputed (i.e. we read them from somewhere
-            #    and they were already on the spec
-            # 2. we can still compute them lazily (i.e. we just made them and
+            # dag_hash can be written out if:
+            # 1. it's precomputed (i.e. we read it from somewhere
+            #    and it was already on the spec
+            # 2. we can still compute it lazily (i.e. we just made the spec and
             #    have the full dependency graph on-hand)
             #
-            # we want to avoid recomputing either hash for specs we read
+            # we want to avoid recomputing the dag_hash for specs we read
             # in from the DB or elsewhere, as we may not have the info
             # (like patches, package versions, etc.) that we need to
-            # compute them. Unknown hashes are better than wrong hashes.
-            write_full_hash = (
-                self._hashes_final and self._full_hash or   # cached and final
+            # compute it. Unknown hashes are better than wrong hashes.
+            write_dag_hash = (
+                self._hashes_final and self._hash or   # cached and final
                 not self._hashes_final)                     # lazily compute
-            if write_full_hash:
-                node[ht.full_hash.name] = self.full_hash()
-
-            write_build_hash = 'build' in hash.deptype and (
-                self._hashes_final and self._build_hash or  # cached and final
-                not self._hashes_final)                     # lazily compute
-            if write_build_hash:
-                node[ht.build_hash.name] = self.build_hash()
+            if write_dag_hash:
+                node[ht.dag_hash.name] = self.dag_hash()
         else:
             node['concrete'] = False
 
-        if hash.name == 'build_hash':
-            node[hash.name] = self.build_hash()
-        elif hash.name == 'process_hash':
+        if hash.name == 'process_hash':
             node[hash.name] = self.process_hash()
+        elif hash.name == 'runtime_hash':
+            node[hash.name] = self.runtime_hash()
 
         return node
 
@@ -1934,7 +1910,7 @@ class Spec(object):
 
         # this spec may have been built with older packages than we have
         # on-hand, and we may not have the build dependencies, so mark it
-        # so we don't recompute full_hash and build_hash.
+        # so we don't recompute dag_hash.
         spec._hashes_final = spec._concrete
 
         if 'patches' in node:
@@ -1947,7 +1923,7 @@ class Spec(object):
                 # FIXME: Monkey patches mvar to store patches order
                 mvar._patches_in_order_of_appearance = patches
 
-        # Don't read dependencies here; from_node_dict() is used by
+        # Don't read dependencies here; from_dict() is used by
         # from_yaml() and from_json() to read the root *and* each dependency
         # spec.
 
@@ -1974,7 +1950,6 @@ class Spec(object):
     @staticmethod
     def read_yaml_dep_specs(deps, hash_type=ht.dag_hash.name):
         """Read the DependencySpec portion of a YAML-formatted Spec.
-
         This needs to be backward-compatible with older spack spec
         formats so that reindex will work on old specs/databases.
         """
@@ -1993,9 +1968,10 @@ class Spec(object):
                 dep_hash, deptypes = elt
             elif isinstance(elt, dict):
                 # new format: elements of dependency spec are keyed.
-                for key in (ht.full_hash.name,
+                for key in (ht.dag_hash.name,
                             ht.build_hash.name,
-                            ht.dag_hash.name,
+                            ht.full_hash.name,
+                            ht.runtime_hash.name,
                             ht.process_hash.name):
                     if key in elt:
                         dep_hash, deptypes = elt[key], elt['type']
@@ -3535,17 +3511,15 @@ class Spec(object):
 
         if caches:
             self._hash = other._hash
-            self._build_hash = other._build_hash
             self._dunder_hash = other._dunder_hash
             self._normal = other._normal
-            self._full_hash = other._full_hash
+            self._runtime_hash = other._runtime_hash
             self._package_hash = other._package_hash
         else:
             self._hash = None
-            self._build_hash = None
             self._dunder_hash = None
             self._normal = False
-            self._full_hash = None
+            self._runtime_hash = None
             self._package_hash = None
 
         return changed
@@ -4427,8 +4401,9 @@ class Spec(object):
                 # Record whether hashes are already cached
                 # So we don't try to compute a hash from insufficient
                 # provenance later
-                has_build_hash = getattr(dep, ht.build_hash.name, None)
-                has_full_hash = getattr(dep, ht.full_hash.name, None)
+                has_dag_hash = getattr(dep, ht.dag_hash.name, None)
+
+                # TODO: Should _runtime_hash be handled here as well?
 
                 # package hash cannot be affected by splice
                 dep.clear_cached_hashes(ignore=['package_hash'])
@@ -4437,10 +4412,8 @@ class Spec(object):
                 # are cached writing specs only writes cached hashes in case
                 # the spec is too old to have full provenance for these hashes,
                 # so we can't rely on doing it at write time.
-                if has_build_hash:
-                    _ = dep.build_hash()
-                if has_full_hash:
-                    _ = dep.full_hash()
+                if has_dag_hash:
+                    _ = dep.dag_hash()
 
         return nodes[self.name]
 
@@ -4526,7 +4499,7 @@ def _spec_from_old_dict(data):
         if 'dependencies' not in node[name]:
             continue
 
-        for dname, dhash, dtypes, _ in Spec.dependencies_from_node_dict(node):
+        for dname, _, dtypes, _ in Spec.dependencies_from_node_dict(node):
             deps[name]._add_dependency(deps[dname], dtypes)
 
     return spec
@@ -4560,7 +4533,7 @@ def _spec_from_dict(data):
                     break
 
     if not any_deps:  # If we never see a dependency...
-        hash_type = ht.dag_hash.name  # use the full_hash provenance
+        hash_type = ht.dag_hash.name
     elif not hash_type:  # Seen a dependency, still don't know hash_type
         raise spack.error.SpecError("Spec dictionary contains malformed "
                                     "dependencies. Old format?")
@@ -4570,10 +4543,7 @@ def _spec_from_dict(data):
 
     # Pass 1: Create a single lookup dictionary by hash
     for i, node in enumerate(nodes):
-        if 'build_spec' in node.keys():
-            node_hash = node[hash_type]
-        else:
-            node_hash = node[hash_type]
+        node_hash = node[hash_type]
         node_spec = Spec.from_node_dict(node)
         hash_dict[node_hash] = node
         hash_dict[node_hash]['node_spec'] = node_spec
@@ -5025,7 +4995,7 @@ def save_dependency_specfiles(
         json_path = os.path.join(output_directory, '{0}.json'.format(dep_name))
 
         with open(json_path, 'w') as fd:
-            fd.write(dep_spec.to_json(hash=ht.build_hash))
+            fd.write(dep_spec.to_json(hash=ht.dag_hash))
 
 
 class SpecParseError(spack.error.SpecError):
