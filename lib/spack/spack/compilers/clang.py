@@ -68,14 +68,14 @@ class Clang(Compiler):
         # compilers.yaml to figure out which named symlink to use
         for compiler_name, link_path in f77_mapping:
             if self.f77 and compiler_name in self.f77:
-                link_paths['f77'] = link_path
+                link_paths['f77'] = os.path.join(link_path)
                 break
         else:
             link_paths['f77'] = os.path.join('clang', 'flang')
 
         for compiler_name, link_path in fc_mapping:
             if self.fc and compiler_name in self.fc:
-                link_paths['fc'] = link_path
+                link_paths['fc'] = os.path.join(link_path)
                 break
         else:
             link_paths['fc'] = os.path.join('clang', 'flang')

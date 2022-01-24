@@ -592,8 +592,9 @@ def configuration_dir(tmpdir_factory, linux_os):
     tmpdir.ensure('user', dir=True)
 
     # Slightly modify config.yaml and compilers.yaml
-    if os.name == 'nt':
+    if sys.platform == 'win32':
         solver = 'original'
+        locks = False
     else:
         solver = os.environ.get('SPACK_TEST_SOLVER', 'clingo')
 
@@ -602,7 +603,7 @@ def configuration_dir(tmpdir_factory, linux_os):
     tcl_root = modules_root.ensure('modules', dir=True)
     lmod_root = modules_root.ensure('lmod', dir=True)
     content = ''.join(config_yaml.read()).format(
-        solver, str(tcl_root), str(lmod_root)
+        solver, locks, str(tcl_root), str(lmod_root)
     )
     t = tmpdir.join('site', 'config.yaml')
     t.write(content)

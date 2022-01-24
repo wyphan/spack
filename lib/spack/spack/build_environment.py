@@ -525,11 +525,10 @@ def _set_variables_for_single_module(pkg, module):
     m.configure = Executable('./configure')
 
     m.meson = Executable('meson')
-    # m.cmake = Executable('cmake')
     m.cmake = Executable('cmake')
     m.ctest = MakeExecutable('ctest', jobs)
 
-    if os.name == 'nt':
+    if sys.platform == 'win32':
         m.nmake = Executable('nmake')
     # Standard CMake arguments
     m.std_cmake_args = spack.build_systems.cmake.CMakePackage._std_args(pkg)
@@ -538,10 +537,10 @@ def _set_variables_for_single_module(pkg, module):
 
     # Put spack compiler paths in module scope.
     link_dir = spack.paths.build_env_path
-    m.spack_cc = os.path.join(link_dir, os.path.join(pkg.compiler.link_paths['cc']))
-    m.spack_cxx = os.path.join(link_dir, os.path.join(pkg.compiler.link_paths['cxx']))
-    m.spack_f77 = os.path.join(link_dir, os.path.join(pkg.compiler.link_paths['f77']))
-    m.spack_fc = os.path.join(link_dir, os.path.join(pkg.compiler.link_paths['fc']))
+    m.spack_cc = os.path.join(link_dir, pkg.compiler.link_paths['cc'])
+    m.spack_cxx = os.path.join(link_dir, pkg.compiler.link_paths['cxx'])
+    m.spack_f77 = os.path.join(link_dir, pkg.compiler.link_paths['f77'])
+    m.spack_fc = os.path.join(link_dir, pkg.compiler.link_paths['fc'])
 
     # Emulate some shell commands for convenience
     m.pwd = os.getcwd

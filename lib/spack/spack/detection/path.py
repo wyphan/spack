@@ -6,7 +6,6 @@
 and running executables.
 """
 import collections
-from distutils.spawn import find_executable
 import os
 import os.path
 import re
