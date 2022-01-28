@@ -23,7 +23,7 @@ class PyFenicsDolfinx(PythonPackage):
     depends_on("cmake@3.18:", type="build")
     depends_on("hdf5", type="build")
     depends_on("pkgconfig", type=("build", "run"))
-    depends_on('python@3.7:', type=('build', 'run'))
+    depends_on("python@3.7:", type=("build", "run"))
     depends_on("py-setuptools", type="build")
     depends_on("fenics-dolfinx@main", when="@main")
     depends_on("fenics-dolfinx@0.3.0", when="@0.3.0")
@@ -49,4 +49,4 @@ class PyFenicsDolfinx(PythonPackage):
     depends_on("py-cffi", type="run")
     depends_on("py-numpy", type="run")
 
-    build_directory = 'python'
+    build_directory = "python"

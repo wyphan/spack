@@ -11,16 +11,7 @@ from .darwin import Darwin
 from .linux import Linux
 from .test import Test
 
-__all__ = [
-    'Platform',
-    'Cray',
-    'Darwin',
-    'Linux',
-    'Test',
-    'platforms',
-    'host',
-    'by_name'
-]
+__all__ = ["Platform", "Cray", "Darwin", "Linux", "Test", "platforms", "host", "by_name"]
 
 #: The "real" platform of the host running Spack. This should not be changed
 #: by any method and is here as a convenient way to refer to the host platform.
@@ -36,6 +27,7 @@ class _PickleableCallable(object):
     _platform or _all_platforms. Lambda or nested functions are
     not pickleable.
     """
+
     def __init__(self, return_value):
         self.return_value = return_value
 

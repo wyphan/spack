@@ -41,10 +41,8 @@ class Libabigail(AnalyzerBase):
         with spack.bootstrap.ensure_bootstrap_configuration():
             # libabigail won't install lib/bin/share without docs
             spec = spack.spec.Spec("libabigail+docs")
-            spack.bootstrap.ensure_executables_in_path_or_raise(
-                ["abidw"], abstract_spec=spec
-            )
-            self.abidw = spack.util.executable.which('abidw')
+            spack.bootstrap.ensure_executables_in_path_or_raise(["abidw"], abstract_spec=spec)
+            self.abidw = spack.util.executable.which("abidw")
 
     def run(self):
         """
@@ -65,8 +63,7 @@ class Libabigail(AnalyzerBase):
 
             # We want to preserve the path in the install directory in case
             # a library has an equivalenly named lib or executable, for example
-            outdir = os.path.dirname(obj.replace(self.spec.package.prefix,
-                                     '').strip(os.path.sep))
+            outdir = os.path.dirname(obj.replace(self.spec.package.prefix, "").strip(os.path.sep))
             outfile = "spack-analyzer-libabigail-%s.xml" % os.path.basename(obj)
             outfile = os.path.join(self.output_dir, outdir, outfile)
             outdir = os.path.dirname(outfile)
