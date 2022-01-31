@@ -597,6 +597,7 @@ def configuration_dir(tmpdir_factory, linux_os):
         locks = False
     else:
         solver = os.environ.get('SPACK_TEST_SOLVER', 'clingo')
+        locks = True
 
     config_yaml = test_config.join('config.yaml')
     modules_root = tmpdir_factory.mktemp('share')
