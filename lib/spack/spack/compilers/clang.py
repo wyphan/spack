@@ -14,20 +14,20 @@ from spack.version import ver
 
 #: compiler symlink mappings for mixed f77 compilers
 f77_mapping = [
-    ('gfortran', ('clang', 'gfortran')),
-    ('xlf_r', ('xl_r', 'xlf_r')),
-    ('xlf', ('xl', 'xlf')),
-    ('pgfortran', ('pgi', 'pgfortran')),
-    ('ifort', ('intel', 'ifort'))
+    ('gfortran', os.path.join('clang', 'gfortran')),
+    ('xlf_r', os.path.join('xl_r', 'xlf_r')),
+    ('xlf', os.path.join('xl', 'xlf')),
+    ('pgfortran', os.path.join('pgi', 'pgfortran')),
+    ('ifort', os.path.join('intel', 'ifort'))
 ]
 
 #: compiler symlink mappings for mixed f90/fc compilers
 fc_mapping = [
-    ('gfortran', ('clang', 'gfortran')),
-    ('xlf90_r', ('xl_r', 'xlf90_r')),
-    ('xlf90', ('xl', 'xlf90')),
-    ('pgfortran', ('pgi', 'pgfortran')),
-    ('ifort', ('intel', 'ifort'))
+    ('gfortran', os.path.join('clang', 'gfortran')),
+    ('xlf90_r', os.path.join('xl_r', 'xlf90_r')),
+    ('xlf90', os.path.join('xl', 'xlf90')),
+    ('pgfortran', os.path.join('pgi', 'pgfortran')),
+    ('ifort', os.path.join('intel', 'ifort'))
 ]
 
 
@@ -68,14 +68,14 @@ class Clang(Compiler):
         # compilers.yaml to figure out which named symlink to use
         for compiler_name, link_path in f77_mapping:
             if self.f77 and compiler_name in self.f77:
-                link_paths['f77'] = os.path.join(link_path)
+                link_paths['f77'] = link_path
                 break
         else:
             link_paths['f77'] = os.path.join('clang', 'flang')
 
         for compiler_name, link_path in fc_mapping:
             if self.fc and compiler_name in self.fc:
-                link_paths['fc'] = os.path.join(link_path)
+                link_paths['fc'] = link_path
                 break
         else:
             link_paths['fc'] = os.path.join('clang', 'flang')
