@@ -12,7 +12,7 @@ import sys
 import pytest
 
 import llnl.util.filesystem as fs
-from llnl.util.symlink import symlink
+from llnl.util.symlink import islink, symlink
 
 import spack.paths
 
@@ -178,7 +178,7 @@ class TestCopyTree:
             assert os.path.exists('dest/2')
             if sys.platform != "win32":
                 # TODO: islink will return false for junctions
-                assert os.path.islink('dest/2')
+                assert islink('dest/2')
 
             assert os.path.exists('dest/a/b2')
             if sys.platform != "win32":

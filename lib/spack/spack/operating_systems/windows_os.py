@@ -20,7 +20,7 @@ from ._operating_system import OperatingSystem
 def windows_version():
     """temporary workaround to return a Windows version as a Version object
     """
-    return Version('10')
+    return Version(platform.release())
 
 
 class WindowsOs(OperatingSystem):

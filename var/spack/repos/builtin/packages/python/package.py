@@ -23,8 +23,6 @@ from spack.build_environment import dso_suffix
 from spack.util.environment import is_system_path
 from spack.util.prefix import Prefix
 
-arch_map = {"AMD64": "x64", "x86": "Win32",
-            "IA64": "Win32", "EM64T": "Win32"}
 is_windows = sys.platform == 'win32'
 
 
@@ -459,6 +457,9 @@ class Python(Package):
         sense to use on Windows, could be overridden to
         cross compile however.
         """
+
+        arch_map = {"AMD64": "x64", "x86": "Win32",
+            "IA64": "Win32", "EM64T": "Win32"}
         arch = platform.machine()
         if arch in arch_map:
             arch = arch_map[arch]

@@ -265,16 +265,16 @@ def set_compiler_environment_variables(pkg, env):
     # Set SPACK compiler variables so that our wrapper knows what to call
     if compiler.cc:
         env.set('SPACK_CC', compiler.cc)
-        env.set('CC', os.path.join(link_dir, os.path.join(compiler.link_paths['cc'])))
+        env.set('CC', os.path.join(link_dir, compiler.link_paths['cc']))
     if compiler.cxx:
         env.set('SPACK_CXX', compiler.cxx)
-        env.set('CXX', os.path.join(link_dir, os.path.join(compiler.link_paths['cxx'])))
+        env.set('CXX', os.path.join(link_dir, compiler.link_paths['cxx']))
     if compiler.f77:
         env.set('SPACK_F77', compiler.f77)
-        env.set('F77', os.path.join(link_dir, os.path.join(compiler.link_paths['f77'])))
+        env.set('F77', os.path.join(link_dir, compiler.link_paths['f77']))
     if compiler.fc:
         env.set('SPACK_FC',  compiler.fc)
-        env.set('FC', os.path.join(link_dir, os.path.join(compiler.link_paths['fc'])))
+        env.set('FC', os.path.join(link_dir, compiler.link_paths['fc']))
 
     # Set SPACK compiler rpath flags so that our wrapper knows what to use
     env.set('SPACK_CC_RPATH_ARG',  compiler.cc_rpath_arg)
@@ -375,7 +375,7 @@ def set_wrapper_variables(pkg, env):
     env_paths = []
     compiler_specific = os.path.join(
         spack.paths.build_env_path,
-        os.path.dirname(os.path.join(pkg.compiler.link_paths['cc'])))
+        os.path.dirname(pkg.compiler.link_paths['cc']))
     for item in [spack.paths.build_env_path, compiler_specific]:
         env_paths.append(item)
         ci = os.path.join(item, 'case-insensitive')

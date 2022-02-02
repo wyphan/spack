@@ -137,8 +137,8 @@ class FastPackageChecker(Mapping):
     def __init__(self, packages_path):
         # The path of the repository managed by this instance
         self.packages_path = packages_path
-        if sys.platform == 'win32':
-            self.packages_path = self.packages_path.replace("\\", "/")
+        # if sys.platform == 'win32':
+        #     self.packages_path = self.packages_path.replace("\\", "/")
 
         # If the cache we need is not there yet, then build it appropriately
         if packages_path not in self._paths_cache:

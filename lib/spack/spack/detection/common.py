@@ -220,8 +220,8 @@ def compute_windows_program_path_for_package(pkg):
     """
     # note windows paths are fine here as this method should only ever be invoked
     # to interact with Windows
-    program_files = 'C:\\Program Files {}\\{}'
+    program_files = 'C:\\Program Files{}\\{}'
 
     return[program_files.format(arch, name) for
-           arch, name in itertools.product(("", "(x86)"),
+           arch, name in itertools.product(("", " (x86)"),
            (pkg.name, pkg.name.capitalize()))]

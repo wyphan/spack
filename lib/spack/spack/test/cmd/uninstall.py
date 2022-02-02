@@ -15,8 +15,8 @@ from spack.main import SpackCommand, SpackCommandError
 uninstall = SpackCommand('uninstall')
 install = SpackCommand('install')
 
-pytestmark = pytest.mark.skipif(sys.platform == "win32",
-                                reason="does not run on windows")
+# pytestmark = pytest.mark.skipif(sys.platform == "win32",
+#                                 reason="does not run on windows")
 
 
 class MockArgs(object):

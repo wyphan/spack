@@ -215,8 +215,8 @@ def test_update_completion_arg(tmpdir, monkeypatch):
     commands("--update-completion")
     assert "--update-completion" in mock_bashfile.read()
 
-
-@pytest.mark.skipif(sys.platform == 'win32', reason="Error on Win")
+# Note: this test is never expected to be supported on Windows
+@pytest.mark.skipif(sys.platform == 'win32', reason="bash completion script generator fails on windows")
 def test_updated_completion_scripts(tmpdir):
     """Make sure our shell tab completion scripts remain up-to-date."""
 
