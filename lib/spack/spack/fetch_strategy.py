@@ -58,6 +58,7 @@ from spack.util.string import comma_and, quote
 
 #: List of all fetch strategies, created by FetchStrategy metaclass.
 all_strategies = []
+is_windows = sys.platform == 'win32'
 
 CONTENT_TYPE_MISMATCH_WARNING_TEMPLATE = (
     "The contents of {subject} look like {content_type}.  Either the URL"
@@ -632,7 +633,9 @@ class CacheURLFetchStrategy(URLFetchStrategy):
 
     @_needs_stage
     def fetch(self):
-        path = re.sub('^file://', '', self.url)
+        reg_str = r'^file://'
+        reg_str += '/' if is_windows else ''
+        path = re.sub(reg_str, '', self.url)
 
         # check whether the cache file exists.
         if not os.path.isfile(path):

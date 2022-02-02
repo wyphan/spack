@@ -678,11 +678,12 @@ def test_110_no_write_with_exception_on_install(database):
         assert database.query('cmake', installed=any) == []
 
     with pytest.raises(Exception):
-        # import pdb; pdb.set_trace()
         fail_while_writing()
 
     # reload DB and make sure cmake was not written.
     with database.read_transaction():
+        # import pdb; pdb.set_trace()
+
         assert database.query('cmake', installed=any) == []
 
 
