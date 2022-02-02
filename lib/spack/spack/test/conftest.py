@@ -50,6 +50,7 @@ from spack.util.pattern import Bunch
 
 is_windows = sys.platform == 'win32'
 
+
 #
 # Return list of shas for latest two git commits in local spack repo
 #

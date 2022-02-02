@@ -18,7 +18,9 @@ from spack.spec import Spec
 install = SpackCommand('install')
 analyze = SpackCommand('analyze')
 
-pytestmark = pytest.mark.skipif(sys.platform == 'win32', reason="Test is unsupported on Windows")
+pytestmark = pytest.mark.skipif(sys.platform == 'win32',
+                                reason="Test is unsupported on Windows")
+
 
 def test_test_package_not_installed(mock_fetch, install_mockery_mutable_config):
     # We cannot run an analysis for a package not installed

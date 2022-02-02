@@ -51,7 +51,6 @@ done
     return str(tmpdir)
 
 
-
 @pytest.mark.skipif(sys.platform == 'win32', reason="Cannot execute bash \
                                                      script on Windows")
 @pytest.mark.regression('11678,13138')

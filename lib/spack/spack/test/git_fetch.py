@@ -6,7 +6,6 @@
 import copy
 import os
 import shutil
-import sys
 
 import pytest
 
@@ -19,7 +18,6 @@ from spack.spec import Spec
 from spack.stage import Stage
 from spack.util.executable import which
 from spack.version import ver
-
 
 _mock_transport_error = 'Mock HTTP transport error'
 

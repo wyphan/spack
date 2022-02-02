@@ -702,13 +702,15 @@ def test_external_entries_in_db(mutable_database):
     assert not rec.spec.external_modules
 
     rec = mutable_database.get_record('externaltool')
-    assert rec.spec.external_path == os.sep + os.path.join('path','to', 'external_tool')
+    assert rec.spec.external_path == os.sep + \
+        os.path.join('path', 'to', 'external_tool')
     assert not rec.spec.external_modules
     assert rec.explicit is False
 
     rec.spec.package.do_install(fake=True, explicit=True)
     rec = mutable_database.get_record('externaltool')
-    assert rec.spec.external_path == os.sep + os.path.join('path','to', 'external_tool')
+    assert rec.spec.external_path == os.sep + \
+        os.path.join('path', 'to', 'external_tool')
     assert not rec.spec.external_modules
     assert rec.explicit is True
 
@@ -922,6 +924,7 @@ def test_database_works_with_empty_dir(tmpdir):
         db.query()
     # Check that reading an empty directory didn't create a new index.json
     assert not os.path.exists(db._index_path)
+
 
 @pytest.mark.parametrize('query_arg,exc_type,msg_str', [
     (['callpath'], spack.store.MatchError, 'matches multiple packages'),

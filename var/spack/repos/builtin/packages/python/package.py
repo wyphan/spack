@@ -459,7 +459,7 @@ class Python(Package):
         """
 
         arch_map = {"AMD64": "x64", "x86": "Win32",
-            "IA64": "Win32", "EM64T": "Win32"}
+                    "IA64": "Win32", "EM64T": "Win32"}
         arch = platform.machine()
         if arch in arch_map:
             arch = arch_map[arch]
