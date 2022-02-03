@@ -471,8 +471,6 @@ def test_package_id_ok(install_mockery):
     assert pkg.name in inst.package_id(pkg)
 
 
-@pytest.mark.skipif(sys.platform == 'win32',
-                    reason="Not supported on Windows (yet)")
 def test_fake_install(install_mockery):
     spec = spack.spec.Spec('trivial-install-test-package')
     spec.concretize()

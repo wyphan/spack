@@ -22,7 +22,7 @@ from spack.version import ver
 # and expected to be fixed
 pytestmark = [pytest.mark.skipif(
     not which('hg'), reason='requires mercurial to be installed'),
-            pytest.mark.skipif(
+    pytest.mark.skipif(
     sys.platform == 'win32', reason="Failing on Win")]
 
 
