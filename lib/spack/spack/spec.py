@@ -4632,7 +4632,7 @@ class SpecLexer(spack.parse.Lexer):
             # posixpath on Windows here because this string will be fed through
             # shlex
             (r'[/\w.-]*/[/\w/-]+\.(yaml|json)[^\b]*' if not is_windows\
-                else r'([A-Za-Z]:)*?[/\w.-]*/[/\w/-]+\.(yaml|json)[^\b]*',
+                else r'([A-Za-z]:)*?[/\w.-]*/[/\w/-]+\.(yaml|json)[^\b]*',
              lambda scanner, v: self.token(FILE, v)),
 
             # Hash match after filename. No valid filename can be a hash
