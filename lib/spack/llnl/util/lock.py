@@ -186,6 +186,10 @@ class LockType(object):
             lock = fcntl.LOCK_EX
         return lock
 
+    @staticmethod
+    def is_valid(op):
+        return op == LockType.READ \
+            or op == LockType.WRITE
 
 class Lock(object):
     """This is an implementation of a filesystem lock using Python's lockf.
