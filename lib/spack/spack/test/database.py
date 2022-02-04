@@ -36,6 +36,8 @@ from spack.schema.database_index import schema
 from spack.util.executable import Executable
 from spack.util.mock_package import MockPackageMultiRepo
 
+is_windows = sys.platform == 'win32'
+
 pytestmark = pytest.mark.db
 
 
@@ -426,7 +428,9 @@ def test_005_db_exists(database):
     index_file = os.path.join(database.root, '.spack-db', 'index.json')
     lock_file = os.path.join(database.root, '.spack-db', 'lock')
     assert os.path.exists(str(index_file))
-    assert os.path.exists(str(lock_file))
+    # Lockfiles not currently supported on Windows
+    if not is_windows:
+        assert os.path.exists(str(lock_file))
 
     with open(index_file) as fd:
         index_object = json.load(fd)

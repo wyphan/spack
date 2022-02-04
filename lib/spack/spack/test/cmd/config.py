@@ -426,6 +426,9 @@ def test_remove_list(mutable_empty_config):
 """
 
 
+
+@pytest.mark.skipif(sys.platform == 'win32',
+                    reason="Lockfiles not support on Windows (yet)")
 def test_config_add_to_env(mutable_empty_config, mutable_mock_env_path):
     ev.create('test')
     with ev.read('test'):

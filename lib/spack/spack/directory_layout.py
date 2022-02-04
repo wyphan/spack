@@ -280,7 +280,7 @@ class DirectoryLayout(object):
 
         specs = []
         for _, path_scheme in self.projections.items():
-            path_elems = ["*"] * len(path_scheme.split(os.sep))
+            path_elems = ["*"] * len(path_scheme.split(posixpath.sep))
             # NOTE: Does not validate filename extension; should happen later
             path_elems += [self.metadata_dir, 'spec.json']
             pattern = os.path.join(self.root, *path_elems)
@@ -298,7 +298,7 @@ class DirectoryLayout(object):
 
         deprecated_specs = set()
         for _, path_scheme in self.projections.items():
-            path_elems = ["*"] * len(path_scheme.split(os.sep))
+            path_elems = ["*"] * len(path_scheme.split(posixpath.sep))
             # NOTE: Does not validate filename extension; should happen later
             path_elems += [self.metadata_dir, self.deprecated_dir,
                            '*_spec.*']  # + self.spec_file_name]
