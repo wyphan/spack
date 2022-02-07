@@ -904,7 +904,7 @@ class PackageBase(six.with_metaclass(PackageMeta, PackageViewMixin, object)):
         if hasattr(self, 'executables'):
             for exe in self.executables:
                 if sys.platform == 'win32':
-                    exe = exe.replace('$', r'\.exe$')
+                    exe = exe + '.exe'
                 plat_exe.append(exe)
         return plat_exe
 

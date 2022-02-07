@@ -168,11 +168,11 @@ def marshall_path(path, mode=Path.unix):
 
 
 def convert_to_posix_path(path):
-    return path.replace('\\', '/')
+    return marshall_path(path, mode=Path.unix)
 
 
 def convert_to_windows_path(path):
-    return path.replace('/', '\\')
+    return marshall_path(path, mode=Path.windows)
 
 
 def substitute_config_variables(path):
