@@ -78,7 +78,7 @@ def path_to_os_path(*pths):
     for pth in pths:
         if type(pth) is str and\
                 not is_path_url(pth):
-            pth = marshall_path(pth, mode=Path.platform_path)
+            pth = format_os_path(pth, mode=Path.platform_path)
         ret_pths.append(pth)
     return ret_pths
 
@@ -148,7 +148,7 @@ class Path:
         else unix
 
 
-def marshall_path(path, mode=Path.unix):
+def format_os_path(path, mode=Path.unix):
     """
     Format path to use consistent, platform specific
     separators.
@@ -168,11 +168,11 @@ def marshall_path(path, mode=Path.unix):
 
 
 def convert_to_posix_path(path):
-    return marshall_path(path, mode=Path.unix)
+    return format_os_path(path, mode=Path.unix)
 
 
 def convert_to_windows_path(path):
-    return marshall_path(path, mode=Path.windows)
+    return format_os_path(path, mode=Path.windows)
 
 
 def substitute_config_variables(path):
