@@ -1535,11 +1535,13 @@ def mock_executable(tmpdir):
     output a custom string when run.
     """
     import jinja2
-
+    shebang = '#!/bin/bash\n' if not is_windows else '@ECHO OFF'
     def _factory(name, output, subdir=('bin',)):
         f = tmpdir.ensure(*subdir, dir=True).join(name)
-        t = jinja2.Template('#!/bin/bash\n{{ output }}\n')
-        f.write(t.render(output=output))
+        if is_windows:
+            f+='.bat'
+        t = jinja2.Template('{{ shebang }}{{ output }}\n')
+        f.write(t.render(shebang=shebang, output=output))
         f.chmod(0o755)
         return str(f)
 
