@@ -175,6 +175,18 @@ def convert_to_windows_path(path):
     return format_os_path(path, mode=Path.windows)
 
 
+def convert_to_platform_path(path):
+    return format_os_path(path, mode=Path.platform_path)
+
+
+def platform_pathsep(path):
+    if Path.platform_path == Path.windows:
+        path = path.replace(':', ';')
+    else:
+        path = path.replace(';', ':')
+    return path
+
+
 def substitute_config_variables(path):
     """Substitute placeholders into paths.
 

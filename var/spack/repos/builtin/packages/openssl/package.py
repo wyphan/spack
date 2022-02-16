@@ -137,39 +137,34 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
             options.append('-D__STDC_NO_ATOMICS__')
 
         # Make a flag for shared library builds
-        shared_flag = ''
-        if spec.satisfies('~shared'):
-            shared_flag = 'no-shared'
 
-        def configure_args():
-            base_args = ['--prefix=%s' % prefix,
-                         '--openssldir=%s'
-                         % join_path(prefix, 'etc', 'openssl')]
-            if spec.satisfies('platform=windows'):
-                base_args.extend([
-                    'CC=%s' % os.environ.get('CC'),
-                    'CXX=%s' % os.environ.get('CXX'),
-                    '%s' % shared_flag,
-                    'VC-WIN64A',
-                ])
-                base_args.insert(0, 'Configure')
-            else:
-                base_args.extend(
-                    [
-                        '-I{0}'.format(self.spec['zlib'].prefix.include),
-                        '-L{0}'.format(self.spec['zlib'].prefix.lib)
-                    ]
-                )
-                base_args.extend(options)
-            return base_args
+
+        base_args = ['--prefix=%s' % prefix,
+                        '--openssldir=%s'
+                        % join_path(prefix, 'etc', 'openssl')]
+        if spec.satisfies('platform=windows'):
+            base_args.extend([
+                'CC=%s' % os.environ.get('CC'),
+                'CXX=%s' % os.environ.get('CXX'),
+                'VC-WIN64A',
+            ])
+            if spec.satisfies('~shared'):
+                base_args.append('no-shared')
+        else:
+            base_args.extend(
+                [
+                    '-I{0}'.format(self.spec['zlib'].prefix.include),
+                    '-L{0}'.format(self.spec['zlib'].prefix.lib)
+                ]
+            )
+            base_args.extend(options)
         # On Windows, we use perl for configuration and build through MSVC
         # nmake.
         if spec.satisfies('platform=windows'):
-            config = Executable('perl')
+            Executable('perl')('Configure', *base_args)
         else:
-            config = Executable('./config')
+            Executable('./config')(*base_args)
 
-        config(*configure_args())
         # Remove non-standard compiler options if present. These options are
         # present e.g. on Darwin. They are non-standard, i.e. most compilers
         # (e.g. gcc) will not accept them.

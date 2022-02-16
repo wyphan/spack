@@ -170,7 +170,8 @@ class FileCache(object):
             os.unlink(self.cache_path(key))
         finally:
             lock.release_write()
-        os.unlink(self._lock_path(key))
+        if lock._enable:
+            os.unlink(self._lock_path(key))
 
 
 class CacheError(SpackError):
