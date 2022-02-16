@@ -182,7 +182,6 @@ def test_compiler_config_modifications(
     # Monkeypatch a pkg.compiler.environment with the required modifications
     pkg = spack.spec.Spec('cmake').concretized().package
     monkeypatch.setattr(pkg.compiler, 'environment', modifications)
-    import pdb; pdb.set_trace()
     # Trigger the modifications
     spack.build_environment.setup_package(pkg, False)
 
