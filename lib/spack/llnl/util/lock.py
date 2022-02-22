@@ -618,6 +618,12 @@ class Lock(object):
             else:
                 return False
 
+    def cleanup(self):
+        if self._reads == 0 and self._writes == 0:
+            os.unlink(self.path)
+        else:
+            raise LockError("Attempting to cleanup active lock.")
+
     def _get_counts_desc(self):
         return '(reads {0}, writes {1})'.format(self._reads, self._writes) \
             if tty.is_verbose() else ''

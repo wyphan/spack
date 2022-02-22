@@ -70,7 +70,7 @@ def is_path_url(path):
 
 def path_to_os_path(*pths):
     """
-    Takes an arbitrary number of postional parameters
+    Takes an arbitrary number of positional parameters
     converts each arguemnt of type string to use a normalized
     filepath separator, and returns a list of all values
     """

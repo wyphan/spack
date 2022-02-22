@@ -5,7 +5,6 @@
 
 import os
 import re
-import sys
 
 import llnl.util.tty as tty
 
@@ -94,8 +93,6 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
     depends_on('perl@5.14.0:', type=('build', 'test'))
     depends_on('ca-certificates-mozilla', type=('build', 'run'), when='certs=mozilla')
 
-    conflicts('+dynamic', when=sys.platform != 'win32')
-
     @classmethod
     def determine_version(cls, exe):
         output = Executable(exe)('version', output=str, error=str)
@@ -137,11 +134,9 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
             options.append('-D__STDC_NO_ATOMICS__')
 
         # Make a flag for shared library builds
-
-
         base_args = ['--prefix=%s' % prefix,
-                        '--openssldir=%s'
-                        % join_path(prefix, 'etc', 'openssl')]
+                     '--openssldir=%s'
+                     % join_path(prefix, 'etc', 'openssl')]
         if spec.satisfies('platform=windows'):
             base_args.extend([
                 'CC=%s' % os.environ.get('CC'),
@@ -174,10 +169,6 @@ class Openssl(Package):   # Uses Fake Autotools, should subclass Package
             # This variant only makes sense for Windows
             if spec.satisfies('platform=windows'):
                 filter_file(r'MT', 'MD', 'makefile')
-            else:
-                tty.warn("Dynamic runtime builds are only available for "
-                         "Windows operating systems. Please disable "
-                         "+dynamic to suppress this warning.")
 
         if spec.satisfies('platform=windows'):
             host_make = nmake
