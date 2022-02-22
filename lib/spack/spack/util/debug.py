@@ -11,7 +11,6 @@ a stack trace and drops the user into an interpreter.
 """
 import code
 import os
-import pdb
 import signal
 import sys
 import traceback
