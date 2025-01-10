@@ -102,53 +102,6 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
     version("4.6.4", sha256="35af16afa0b67af9b8eb15cafb76d2bc5f568540552522f5dc2c88dd45d977e8")
     version("4.5.4", sha256="eef3f0456db8c3d992cbb51d5d32558190bc14f3bc19383dd93acc27acc6befc")
 
-    # Newlib version table
-    newlib_shasum = {
-        "3.0.0.20180831": "3ad3664f227357df15ff34e954bfd9f501009a647667cd307bf0658aefd6eb5b",
-        "3.3.0": "58dd9e3eaedf519360d92d84205c3deef0b3fc286685d1c562e245914ef72c66",
-        "4.1.0": "f296e372f51324224d387cc116dc37a6bd397198756746f93a2b02e9a5d40154",
-        "4.2.0.20211231": "c3a0e8b63bc3bef1aeee4ca3906b53b3b86c8d139867607369cb2915ffc54435",
-        "4.3.0.20230120": "83a62a99af59e38eb9b0c58ed092ee24d700fff43a22c03e433955113ef35150",
-    }
-
-    # AMDGCN build requires LLVM utilities
-    amdgcn_llvm_src_ver = {
-        "@10.1.0": "9.0.1",
-        "@10.2.0": "9.0.1",
-        "@10.3.0": "9.0.1",
-        "@10.4.0": "9.0.1",
-        "@10.5.0": "9.0.1",
-        "@11.1.0": "9.0.1",
-        "@11.2.0": "9.0.1",
-        "@11.3.0": "9.0.1",
-        "@11.4.0": "9.0.1",
-        "@12.1.0": "13.0.1",
-        "@12.2.0": "13.0.1",
-        "@12.3.0": "13.0.1",
-        "@13.1.0": "13.0.1",
-        "@13.2.0": "13.0.1",
-        "@master": "13.0.1",
-    }
-
-    # AMDGCN build requires a Newlib version contemporaneous with GCC
-    amdgcn_newlib_ver = {
-        "@10.1.0": "3.3.0",  # GCC: 2020-05-07, Newlib: 2020-01-22
-        "@10.2.0": "3.3.0",  # GCC: 2020-07-23, Newlib: 2020-01-22
-        "@10.3.0": "4.1.0",  # GCC: 2021-04-08, Newlib: 2020-12-18
-        "@10.4.0": "4.2.0.20211231",  # GCC: 2022-06-28, Newlib: 2021-12-31
-        "@10.5.0": "4.3.0.20230120",  # GCC: 2023-07-26, Newlib: 2023-01-20
-        "@11.1.0": "4.1.0",  # GCC: 2021-04-27, Newlib: 2020-12-18
-        "@11.2.0": "4.1.0",  # GCC: 2021-07-28, Newlib: 2020-12-18
-        "@11.3.0": "4.2.0.20211231",  # GCC: 2022-04-21, Newlib: 2021-12-31
-        "@11.4.0": "4.3.0.20230120",  # GCC: 2023-05-29, Newlib: 2023-01-20
-        "@12.1.0": "4.2.0.20211231",  # GCC: 2022-05-06, Newlib: 2021-12-31
-        "@12.2.0": "4.2.0.20211231",  # GCC: 2022-08-19, Newlib: 2021-12-31
-        "@12.3.0": "4.3.0.20230120",  # GCC: 2023-05-08, Newlib: 2023-01-20
-        "@13.1.0": "4.3.0.20230120",  # GCC: 2023-04-26, Newlib: 2023-01-20
-        "@13.2.0": "4.3.0.20230120",  # GCC: 2023-07-27, Newlib: 2023-01-20
-        "@master": "4.3.0.20230120",  # Newest version of Newlib
-    }
-
     depends_on("c", type="build")
     depends_on("cxx", type="build")
 
@@ -371,6 +324,17 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         conflicts("languages=obj-c++")
         conflicts("languages=d")
 
+    # Newlib version table
+    newlib_shasum = {
+        "3.0.0.20180831": "3ad3664f227357df15ff34e954bfd9f501009a647667cd307bf0658aefd6eb5b",
+        "3.3.0": "58dd9e3eaedf519360d92d84205c3deef0b3fc286685d1c562e245914ef72c66",
+        "4.1.0": "f296e372f51324224d387cc116dc37a6bd397198756746f93a2b02e9a5d40154",
+        "4.2.0.20211231": "c3a0e8b63bc3bef1aeee4ca3906b53b3b86c8d139867607369cb2915ffc54435",
+        "4.3.0.20230120": "83a62a99af59e38eb9b0c58ed092ee24d700fff43a22c03e433955113ef35150",
+        "4.4.0.20231231": "0c166a39e1bf0951dfafcd68949fe0e4b6d3658081d6282f39aeefc6310f2f13",
+        "4.5.0.20241231": "33f12605e0054965996c25c1382b3e463b0af91799001f5bb8c0630f2ec8c852",
+    }
+
     with when("+nvptx"):
         depends_on("cuda")
         nvptx_newlib_ver = "3.0.0.20180831"
@@ -390,20 +354,45 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         # NVPTX build disables bootstrap
         conflicts("+bootstrap")
 
+    # AMDGCN build requires a Newlib version contemporaneous with GCC
+    # For GCC release dates, refer to https://gcc.gnu.org/index.html#news
+    # For Newlib versions, refer to https://sourceware.org/ftp/newlib/index.html
+    amdgcn_newlib_ver = {
+        "@master": "4.5.0.20241231",  # Newest version of Newlib
+        "@14.2.0": "4.4.0.20231231",  # GCC: 2024-08-01, Newlib: 2023-12-31
+        "@14.1.0": "4.4.0.20231231",  # GCC: 2024-05-07, Newlib: 2023-12-31
+        "@13.3.0": "4.4.0.20231231",  # GCC: 2024-05-21, Newlib: 2023-12-31
+        "@13.2.0": "4.3.0.20230120",  # GCC: 2023-07-27, Newlib: 2023-01-20
+        "@13.1.0": "4.3.0.20230120",  # GCC: 2023-04-26, Newlib: 2023-01-20
+        "@12.4.0": "4.4.0.20231231",  # GCC: 2024-06-20, Newlib: 2023-12-31
+        "@12.3.0": "4.3.0.20230120",  # GCC: 2023-05-08, Newlib: 2023-01-20
+        "@12.2.0": "4.2.0.20211231",  # GCC: 2022-08-19, Newlib: 2021-12-31
+        "@12.1.0": "4.2.0.20211231",  # GCC: 2022-05-06, Newlib: 2021-12-31
+        "@11.5.0": "4.4.0.20231231",  # GCC: 2024-07-19, Newlib: 2023-12-31
+        "@11.4.0": "4.3.0.20230120",  # GCC: 2023-05-29, Newlib: 2023-01-20
+        "@11.3.0": "4.2.0.20211231",  # GCC: 2022-04-21, Newlib: 2021-12-31
+        "@11.2.0": "4.1.0",  # GCC: 2021-07-28, Newlib: 2020-12-18
+        "@11.1.0": "4.1.0",  # GCC: 2021-04-27, Newlib: 2020-12-18
+        "@10.5.0": "4.3.0.20230120",  # GCC: 2023-07-07, Newlib: 2023-01-20
+        "@10.4.0": "4.2.0.20211231",  # GCC: 2022-06-28, Newlib: 2021-12-31
+        "@10.3.0": "4.1.0",  # GCC: 2021-04-08, Newlib: 2020-12-18
+        "@10.2.0": "3.3.0",  # GCC: 2020-07-23, Newlib: 2020-01-22
+        "@10.1.0": "3.3.0",  # GCC: 2020-05-07, Newlib: 2020-01-22
+    }
+
     with when("+amdgcn"):
-        # Set up LLVM versions
-        for k, v in amdgcn_llvm_src_ver.items():
-            depends_on(
-                f"llvm@{v} ~clang +lld ~gold ~llvm_dylib ~polly targets=amdgpu",
-                type=("build", "link"),
-                when=k,
-            )
+        depends_on("hip")
+        # AMDGCN build requires LLVM utilities
+        llvm_variants = "+lld targets=amdgpu"
+        depends_on(f"llvm@9.0.1 {llvm_variants}", type=("build", "link"), when="@:11")
+        depends_on(f"llvm@13.0.1 {llvm_variants}", type=("build", "link"), when="@12:")
+
         # Set up Newlib versions
         for k, v in amdgcn_newlib_ver.items():
             with when(k):
                 resource(
                     name="newlib",
-                    url="ftp://sourceware.org/pub/newlib/newlib-{0}.tar.gz".format(v),
+                    url=f"ftp://sourceware.org/pub/newlib/newlib-{v}.tar.gz",
                     sha256=newlib_shasum[v],
                     destination="newlibsource",
                     fetch_options=timeout,
@@ -1181,7 +1170,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
         if self.spec.satisfies("+nvptx") or self.spec.satisfies("+amdgcn"):
             for dir in ["lib64", "lib"]:
                 libdir = join_path(self.prefix, dir)
-                if glob.glob(join_path(libdir, "libgomp." + dso_suffix)):
+                if glob.glob(join_path(libdir, "libgomp.*")):
                     libgomp_dir = libdir
                     break
             else:
@@ -1197,7 +1186,7 @@ class Gcc(AutotoolsPackage, GNUMirrorPackage, CompilerPackage):
                     for line in lines:
                         if line.startswith("*link_gomp:"):
                             f.write("\n\n# Generated by Spack\n\n")
-                            f.write(line.strip("\n") + f" -rpath {libgomp_dir}\n\n"")
+                            f.write(line.strip("\n") + f" -rpath {libgomp_dir}\n\n")
                         else:
                             f.write(line)
                 set_install_permissions(libgomp_spec_file)
