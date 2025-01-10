@@ -1,5 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -18,7 +17,7 @@ across nodes.  So, e.g., you can run the test like this::
     mpirun -n 7 spack test lock
 
 And it will test locking correctness among MPI processes.  Ideally, you
-want the MPI processes to span across multiple nodes, so, e.g., for SLURM
+want the MPI processes to span across multiple nodes, so, e.g., for Slurm
 you might do this::
 
     srun -N 7 -n 7 -m cyclic spack test lock
@@ -649,17 +648,17 @@ def test_upgrade_read_to_write(private_lock_path):
     lock.acquire_read()
     assert lock._reads == 1
     assert lock._writes == 0
-    assert lock._file.mode == "r+"
+    assert lock._file.mode == "rb+"
 
     lock.acquire_write()
     assert lock._reads == 1
     assert lock._writes == 1
-    assert lock._file.mode == "r+"
+    assert lock._file.mode == "rb+"
 
     lock.release_write()
     assert lock._reads == 1
     assert lock._writes == 0
-    assert lock._file.mode == "r+"
+    assert lock._file.mode == "rb+"
 
     lock.release_read()
     assert lock._reads == 0
@@ -681,7 +680,7 @@ def test_upgrade_read_to_write_fails_with_readonly_file(private_lock_path):
         lock.acquire_read()
         assert lock._reads == 1
         assert lock._writes == 0
-        assert lock._file.mode == "r"
+        assert lock._file.mode == "rb"
 
         # upgrade to write here
         with pytest.raises(lk.LockROFileError):
