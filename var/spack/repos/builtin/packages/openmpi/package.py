@@ -700,8 +700,6 @@ with '-Wl,-commons,use_dylibs' and without
     depends_on("cuda", type=("build", "link", "run"), when="@5: +cuda")
     depends_on("hip", type=("build", "link", "run"), when="@5: +rocm")
 
-    requires("fabrics=ucx", when="+rocm")
-
     conflicts("+cxx_exceptions", when="%nvhpc", msg="nvc does not ignore -fexceptions, but errors")
 
     # CUDA support was added in 1.7, and since the variant is part of the
