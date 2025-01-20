@@ -8,11 +8,31 @@ import os
 import re
 import sys
 
+import llnl.util.lang
 import llnl.util.tty as tty
 
 import spack.compilers
+import spack.platforms
 import spack.version
 from spack.package import *
+from spack.platforms.cray import slingshot_network
+
+
+@llnl.util.lang.memoized
+def is_CrayEX():
+    # Credit to upcxx and chapel packages for this hpe-cray-ex detection function
+    if spack.platforms.host().name == "linux":
+        target = os.environ.get("CRAYPE_NETWORK_TARGET")
+        if target in ["ofi", "ucx"]:  # normal case
+            return True
+        elif target is None:  # but some systems lack Cray PrgEnv
+            fi_info = which("fi_info")
+            if (
+                fi_info
+                and fi_info("-l", output=str, error=str, fail_on_error=False).find("cxi") >= 0
+            ):
+                return True
+    return False
 
 
 class Openmpi(AutotoolsPackage, CudaPackage, ROCmPackage):
@@ -639,7 +659,6 @@ with '-Wl,-commons,use_dylibs' and without
         depends_on("ucx")
         depends_on("ucx +thread_multiple", when="+thread_multiple")
         depends_on("ucx +thread_multiple", when="@3.0.0:")
-        depends_on("ucx +rocm", when="+rocm")
         depends_on("ucx@1.9.0:", when="@4.0.6:4.0")
         depends_on("ucx@1.9.0:", when="@4.1.1:4.1")
         depends_on("ucx@1.9.0:", when="@5.0.0:")
@@ -647,12 +666,20 @@ with '-Wl,-commons,use_dylibs' and without
     depends_on("fca", when="fabrics=fca")
     depends_on("hcoll", when="fabrics=hcoll")
     depends_on("ucc", when="fabrics=ucc")
+    depends_on("ucc +rocm", when="fabrics=ucc +rocm")
     depends_on("xpmem", when="fabrics=xpmem")
     depends_on("knem", when="fabrics=knem")
 
     depends_on("lsf", when="schedulers=lsf")
     depends_on("pbs", when="schedulers=tm")
     depends_on("slurm", when="schedulers=slurm")
+
+    with when("+rocm"):
+        requires(
+            "fabrics=ucx ^ucx +rocm",
+            "^libfabric" + (" fabrics=cxi" if slingshot_network() or is_CrayEX() else ""),
+            policy="one_of",
+        )
 
     # PMIx is unavailable for @1, and required for @2:
     # OpenMPI @2: includes a vendored version:
